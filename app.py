@@ -23,7 +23,7 @@ def links_method(regulation):
 
     for anchor in anchors:
         text = anchor.text.strip()
-        href = anchor.get("href")
+        href = anchor.get("href").removeprefix("http://nriitexamcell.com").removeprefix("https://nriitexamcell.com").removesuffix(":")
 
         if regulation in text and href:
             match = re.search(r"(\d)-(\d)", href)

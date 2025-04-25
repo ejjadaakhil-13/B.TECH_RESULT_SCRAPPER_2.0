@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NRIIT Results Viewer</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      }
+
+      body {
+        line-height: 1.6;
+        color: #333;
+        background-color: #f0f2f5;
+        padding: 20px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        color: #1a3a5f;
+        margin-bottom: 15px;
+      }
+
+      .container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        max-width: 1000px;
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      .header {
+        margin-bottom: 25px;
+        text-align: center;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 20px;
+      }
+
+      .header h1 {
+        margin-bottom: 8px;
+        color: #1a3a5f;
+        font-size: 32px;
+      }
+
+      .header p {
+        color: #6c757d;
+        font-size: 16px;
+      }
+
+      .form-group {
+        margin-bottom: 25px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: flex-end;
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+      }
+
+      .form-field {
+        margin-bottom: 10px;
+        min-width: 200px;
+        flex: 1;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #1a3a5f;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: all 0.3s;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+
+      input[type="text"]:focus {
+        border-color: #4a89dc;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(74, 137, 220, 0.2);
+      }
+
+      button {
+        background-color: #4a89dc;
+        color: white;
+        border: none;
+        padding: 12px 22px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        height: 48px;
+        min-width: 140px;
+        transition: all 0.3s;
+        font-weight: 600;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      button:hover {
+        background-color: #3a70b5;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      .error {
+        color: #e74c3c;
+        margin: 15px 0;
+        padding: 15px;
+        background-color: #fde2e2;
+        border-radius: 8px;
+        border-left: 4px solid #e74c3c;
+        font-weight: 500;
+      }
+
+      .info {
+        color: #2980b9;
+        margin: 15px 0;
+        padding: 15px;
+        background-color: #e3f2fd;
+        border-radius: 8px;
+        border-left: 4px solid #2980b9;
+      }
+
+      .result-container {
+        margin-top: 30px;
+      }
+
+      .student-info {
+        margin-bottom: 30px;
+        padding: 25px;
+        background-color: #f9f9f9;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      }
+
+      .student-info table {
+        margin: 0 auto;
+        border-collapse: collapse;
+        width: 100%;
+        max-width: 600px;
+        table-layout: fixed; /* Ensures consistent cell widths */
+      }
+
+      .student-info td {
+        padding: 12px 20px;
+        border: 1px solid #eee;
+        word-wrap: break-word; /* Ensures text wraps rather than overflowing */
+      }
+
+      .student-info td:first-child {
+        font-weight: 600;
+        width: 40%;
+        background-color: #f2f6fc;
+        color: #1a3a5f;
+      }
+
+      .student-name {
+        font-size: 1.3em;
+        font-weight: 600;
+        color: #1a3a5f;
+      }
+
+      .semester {
+        margin-bottom: 35px;
+        background-color: #f9f9f9;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s;
+      }
+
+      .semester:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .semester-header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #ddd;
+        gap: 10px;
+      }
+
+      .sgpa {
+        font-weight: 600;
+        color: #1a3a5f;
+        padding: 8px 15px;
+        background-color: rgba(74, 137, 220, 0.1);
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+
+      .table-responsive {
+        overflow-x: auto;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        min-width: 500px;
+        table-layout: fixed; /* Ensures consistent column widths */
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 15px 12px;
+        border-bottom: 1px solid #eee;
+        word-wrap: break-word; /* Ensures text wraps rather than overflowing */
+      }
+
+      th {
+        background-color: #f2f6fc;
+        font-weight: 600;
+        color: #1a3a5f;
+      }
+
+      tr:hover {
+        background-color: #f8fafd;
+      }
+
+      .status-passed {
+        color: #27ae60;
+        font-weight: 600;
+        background-color: rgba(39, 174, 96, 0.1);
+        padding: 6px 12px;
+        border-radius: 6px;
+        display: inline-block;
+      }
+
+      .status-failed {
+        color: #e74c3c;
+        font-weight: 600;
+        background-color: rgba(231, 76, 60, 0.1);
+        padding: 6px 12px;
+        border-radius: 6px;
+        display: inline-block;
+      }
+
+      .cgpa-container {
+        margin: 30px auto;
+        text-align: center;
+        padding: 20px;
+        background: linear-gradient(135deg, #4a89dc, #1a3a5f);
+        color: white;
+        border-radius: 12px;
+        font-size: 20px;
+        max-width: 350px;
+        box-shadow: 0 5px 15px rgba(74, 137, 220, 0.3);
+      }
+
+      .cgpa-label {
+        font-size: 16px;
+        opacity: 0.9;
+        margin-bottom: 8px;
+      }
+
+      .cgpa-value {
+        font-size: 36px;
+        font-weight: 700;
+      }
+
+      .failed-info {
+        margin: 25px 0;
+        padding: 25px;
+        background-color: rgba(231, 76, 60, 0.06);
+        border-radius: 12px;
+        border-left: 5px solid #e74c3c;
+        box-shadow: 0 2px 10px rgba(231, 76, 60, 0.1);
+      }
+
+      .failed-info h3 {
+        color: #c0392b;
+        margin-bottom: 20px;
+      }
+
+      .failed-info ul {
+        list-style-type: none;
+        padding-left: 5px;
+      }
+
+      .failed-info li {
+        margin-bottom: 10px;
+        color: #e74c3c;
+        padding: 8px 15px;
+        background-color: rgba(231, 76, 60, 0.05);
+        border-radius: 6px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        word-wrap: break-word; /* Ensures text wraps rather than overflowing */
+      }
+
+      /* Loading animation */
+      .loading-container {
+        display: none;
+        text-align: center;
+        margin: 30px 0;
+      }
+
+      .loading-spinner {
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #4a89dc;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+      }
+
+      .loading-text {
+        margin-top: 20px;
+        font-size: 18px;
+        color: #6c757d;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Improved Responsive adjustments */
+      @media (max-width: 768px) {
+        body {
+          padding: 10px;
+        }
+
+        .container {
+          padding: 15px;
+        }
+
+        .header h1 {
+          font-size: 24px;
+        }
+
+        .header p {
+          font-size: 14px;
+        }
+
+        .form-group {
+          flex-direction: column;
+          align-items: stretch;
+          padding: 15px;
+        }
+
+        .form-field {
+          width: 100%;
+          margin-bottom: 15px;
+        }
+
+        button {
+          width: 100%;
+          margin-top: 10px;
+        }
+
+        .semester {
+          padding: 15px;
+        }
+
+        .semester-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .sgpa {
+          margin-top: 10px;
+          align-self: flex-start;
+        }
+
+        .student-info {
+          padding: 15px;
+        }
+
+        .student-info table {
+          width: 100%;
+        }
+
+        .student-info td {
+          padding: 10px;
+        }
+
+        /* Stack the cells for better mobile viewing */
+        .student-info tr {
+          display: flex;
+          flex-direction: column;
+          margin-bottom: 15px;
+          border: 1px solid #eee;
+          border-radius: 8px;
+          overflow: hidden;
+        }
+
+        .student-info td {
+          border: none;
+          border-bottom: 1px solid #eee;
+          width: 100%;
+        }
+
+        .student-info td:last-child {
+          border-bottom: none;
+        }
+
+        .cgpa-container {
+          margin: 20px auto;
+          padding: 15px;
+        }
+
+        .cgpa-value {
+          font-size: 28px;
+        }
+
+        .failed-info {
+          padding: 15px;
+        }
+
+        .failed-info li {
+          padding: 6px 10px;
+        }
+
+        /* Make tables more mobile-friendly */
+        .table-responsive {
+          margin-left: -15px;
+          margin-right: -15px;
+          width: calc(100% + 30px);
+          border-radius: 0;
+        }
+
+        table {
+          min-width: 100%;
+          /* Adjusted column widths for mobile */
+        }
+
+        th,
+        td {
+          padding: 10px 8px;
+        }
+
+        /* Define specific column widths for subject tables */
+        table th:nth-child(1),
+        table td:nth-child(1) {
+          /* Subject */
+          width: 40%;
+        }
+
+        table th:nth-child(2),
+        table td:nth-child(2) {
+          /* Status */
+          width: 25%;
+        }
+
+        table th:nth-child(3),
+        table td:nth-child(3) {
+          /* Grade Points */
+          width: 17.5%;
+        }
+
+        table th:nth-child(4),
+        table td:nth-child(4) {
+          /* Credits */
+          width: 17.5%;
+        }
+
+        .status-passed,
+        .status-failed {
+          padding: 4px 8px;
+          font-size: 0.9em;
+        }
+      }
+
+      /* Additional media query for very small screens */
+      @media (max-width: 480px) {
+        .container {
+          padding: 12px;
+        }
+
+        .header h1 {
+          font-size: 20px;
+        }
+
+        .table-responsive {
+          margin-left: -12px;
+          margin-right: -12px;
+          width: calc(100% + 24px);
+        }
+
+        th,
+        td {
+          padding: 8px 6px;
+          font-size: 0.9em;
+        }
+
+        .student-info td {
+          padding: 8px;
+        }
+
+        .cgpa-container {
+          padding: 12px;
+        }
+
+        .cgpa-value {
+          font-size: 24px;
+        }
+
+        /* Adjust status badges for very small screens */
+        .status-passed,
+        .status-failed {
+          padding: 3px 6px;
+          font-size: 0.85em;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>NRIIT Results Viewer</h1>
+        <p>View your consolidated semester results</p>
+      </div>
+
+      <form method="POST" id="resultForm">
+        <div class="form-group">
+          <div class="form-field">
+            <label for="roll_number">Roll Number:</label>
+            <input
+              type="text"
+              id="roll_number"
+              name="roll_number"
+              value="{{ roll_number if roll_number else '' }}"
+              placeholder="e.g., 20KN1A1209"
+              required
+            />
+          </div>
+          <div class="form-field">
+            <label for="regulation">Regulation:</label>
+            <input
+              type="text"
+              id="regulation"
+              name="regulation"
+              value="{{ regulation if regulation else 'NRIA20' }}"
+              placeholder="e.g., NRIA20"
+              required
+            />
+          </div>
+          <button type="submit" onclick="showLoading()">Get Results</button>
+        </div>
+      </form>
+
+      <div class="loading-container" id="loadingContainer">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Fetching results, please wait...</div>
+      </div>
+
+      {% if error %}
+      <div class="error">{{ error }}</div>
+      {% endif %} {% if result %}
+      <div class="result-container">
+        <div class="student-info">
+          <table>
+            <tbody>
+              <tr>
+                <td>Roll Number:</td>
+                <td>{{ roll_number }}</td>
+              </tr>
+              <tr>
+                <td>Name of the Student:</td>
+                <td class="student-name">{{ result.student_name }}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="cgpa-container">
+            <div class="cgpa-label">Overall CGPA</div>
+            <div class="cgpa-value">{{ result.cgpa }}</div>
+          </div>
+
+          {% if result.total_failed > 0 %}
+          <div class="failed-info">
+            <h3>
+              Total Subjects to Clear:
+              <span class="status-failed">{{ result.total_failed }}</span>
+            </h3>
+            <ul>
+              {% for subject in result.failed_subjects %}
+              <li>{{ subject }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+        </div>
+
+        {% for sem_key, sem_data in result.items() %} {% if sem_key != "cgpa"
+        and sem_key != "student_name" and sem_key != "total_failed" and sem_key
+        != "failed_subjects" %}
+        <div class="semester">
+          <div class="semester-header">
+            <h3>Semester {{ sem_key.replace('_', '-') }}</h3>
+            <div class="sgpa">SGPA: {{ sem_data.sgpa }}</div>
+          </div>
+
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Status</th>
+                  <th>Grade Points</th>
+                  <th>Credits</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for subject, details in sem_data.subjects.items() %}
+                <tr>
+                  <td>{{ subject }}</td>
+                  <td>
+                    <!-- Fix: Check if status contains "pass" in any case -->
+                    {% if "pass" in details.status.lower() %}
+                    <span class="status-passed">PASSED</span>
+                    {% else %}
+                    <span class="status-failed">FAILED</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ details.grade_point }}</td>
+                  <td>{{ details.credits }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endif %} {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <script>
+      function showLoading() {
+        const form = document.getElementById("resultForm");
+        const loadingContainer = document.getElementById("loadingContainer");
+
+        if (form.checkValidity()) {
+          loadingContainer.style.display = "block";
+        }
+      }
+    </script>
+  </body>
+</html>

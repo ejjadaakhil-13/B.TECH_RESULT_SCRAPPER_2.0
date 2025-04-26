@@ -41,7 +41,7 @@ def get_student_info_and_subjects(url, roll_number):
     payload = {"roll": roll_number, "submit": "Get result"}
     session = requests.Session()
     try:
-        response = session.post(url, data=payload, timeout=40)
+        response = session.post(url, data=payload )
         soup = BeautifulSoup(response.text, "html.parser")
         
         # Extract student name - improved extraction logic

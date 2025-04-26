@@ -611,9 +611,8 @@
           {% endif %}
         </div>
 
-        {% for sem_key, sem_data in result.items() %} {% if sem_key != "cgpa"
-        and sem_key != "student_name" and sem_key != "total_failed" and sem_key
-        != "failed_subjects" %}
+        {% for sem_key in result.sorted_semesters %} {% set sem_data =
+        result[sem_key] %}
         <div class="semester">
           <div class="semester-header">
             <h3>Semester {{ sem_key.replace('_', '-') }}</h3>
@@ -631,11 +630,10 @@
                 </tr>
               </thead>
               <tbody>
-                {% for subject, details in sem_data.subjects.items() %}
+                {% for subject_code, details in sem_data.subjects.items() %}
                 <tr>
-                  <td>{{ subject }}</td>
+                  <td>{{ details.name }}</td>
                   <td>
-                    <!-- Fix: Check if status contains "pass" in any case -->
                     {% if "pass" in details.status.lower() %}
                     <span class="status-passed">PASSED</span>
                     {% else %}
@@ -650,7 +648,7 @@
             </table>
           </div>
         </div>
-        {% endif %} {% endfor %}
+        {% endfor %}
       </div>
       {% endif %}
     </div>

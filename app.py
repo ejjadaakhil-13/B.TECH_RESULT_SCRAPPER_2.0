@@ -66,13 +66,23 @@ def get_student_info_and_subjects(url, roll_number):
         headers = [th.text.strip() for th in tables[-1].find_all("th")]
         try:
             indices = {
+                "subject_code": headers.index("Subject Code"),  # Added subject code index
                 "subject": headers.index("Subject Name"),
                 "status": headers.index("Status"),
                 "grade_point": headers.index("Grade Points"),
                 "credits": headers.index("Credits"),
             }
         except ValueError:
-            return student_name, {}, []
+            # If "Subject Code" column doesn't exist, we'll try to extract it from the subject name
+            if "Subject Name" in headers:
+                indices = {
+                    "subject": headers.index("Subject Name"),
+                    "status": headers.index("Status"),
+                    "grade_point": headers.index("Grade Points"),
+                    "credits": headers.index("Credits"),
+                }
+            else:
+                return student_name, {}, []
 
         rows = tables[-1].find_all("tr")[0:]  
         subjects_status = {}
@@ -83,6 +93,15 @@ def get_student_info_and_subjects(url, roll_number):
             if len(cols) > max(indices.values()):
                 subject = cols[indices["subject"]].text.strip()
                 status = cols[indices["status"]].text.strip()
+                
+                # Extract subject code if it exists as a separate column or extract from subject name
+                if "subject_code" in indices:
+                    subject_code = cols[indices["subject_code"]].text.strip()
+                else:
+                    # Try to extract code from subject name (usually at the beginning)
+                    match = re.search(r'^([A-Z0-9]+)', subject)
+                    subject_code = match.group(1) if match else subject
+                
                 try:
                     grade_point = float(cols[indices["grade_point"]].text.strip())
                     credits = float(cols[indices["credits"]].text.strip())
@@ -90,17 +109,22 @@ def get_student_info_and_subjects(url, roll_number):
                     grade_point = 0.0
                     credits = 0.0
 
-                subjects_status[subject] = {
+                # Use subject_code as the key instead of subject name
+                subjects_status[subject_code] = {
+                    "name": subject,  # Store the subject name for display
                     "status": status,
                     "grade_point": grade_point,
                     "credits": credits
                 }
+                # Store the grade point and credits for all subjects including failed ones
                 grade_credits.append((grade_point, credits))
 
         return student_name, subjects_status, grade_credits
     except Exception as e:
         print(f"Error fetching from {url}: {e}")
         return "", {}, []
+    
+    
 
 def compile_full_result(roll_number, regulation):
     results_links = links_method(regulation)
@@ -128,19 +152,23 @@ def compile_full_result(roll_number, regulation):
 
         for url in links:
             _, result, sem_gc = get_student_info_and_subjects(url, roll_number)
-            sem_result.update(result)
+            
+            # Update subjects with new data while preserving subject code as key
+            for subject_code, details in result.items():
+                sem_result[subject_code] = details
+                
             grade_credits.extend(sem_gc)
 
-        # Count failed subjects - FIX: Case-insensitive comparison
-        for subject, details in sem_result.items():
-            # Check if status contains "PASSED" or "passed" in any case
-            if "pass" not in details["status"].lower():
-                total_failed += 1
-                failed_subjects.append(f"{subject} (Semester {semester.replace('_', '-')})")
-
+        # Calculate SGPA including all subjects
         sem_gp_sum = sum(gp * cr for gp, cr in grade_credits)
         sem_cr_sum = sum(cr for _, cr in grade_credits)
         sgpa = round(sem_gp_sum / sem_cr_sum, 2) if sem_cr_sum > 0 else 0.0
+
+        # Count failed subjects
+        for subject_code, details in sem_result.items():
+            if "pass" not in details["status"].lower():
+                total_failed += 1
+                failed_subjects.append(f"{details['name']} (Semester {semester.replace('_', '-')})")
 
         final_result[semester] = {
             "subjects": sem_result,
@@ -175,6 +203,13 @@ def index():
                 if not result or (len(result) <= 3 and "cgpa" in result):
                     error = "No results found for this roll number and regulation"
                     result = None
+                else:
+                    # Sort semesters by year and semester number
+                    result["sorted_semesters"] = sorted(
+                        [sem_key for sem_key in result.keys() 
+                         if sem_key not in ["cgpa", "student_name", "total_failed", "failed_subjects", "sorted_semesters"]],
+                        key=lambda x: (int(x.split('_')[0]), int(x.split('_')[1]))
+                    )
             except Exception as e:
                 error = f"Error retrieving results: {str(e)}"
                 

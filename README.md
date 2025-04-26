@@ -3,7 +3,7 @@ A Flask-based web application that provides a consolidated view of academic resu
 
 ## Live Demo
 The application is deployed and can be accessed at:
-https://b-tech-result-scrapper-2-0.onrender.com/
+https://b-tech-result-scrapper-2-0.vercel.app/
 
 ## Installation
 1. Clone the repository:
